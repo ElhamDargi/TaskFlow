@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlowApi.Data;
 using TaskFlowApi.DTOs;
+using TaskFlowApi.Mappers;
 using TaskFlowApi.Models;
 
 namespace TaskFlowApi.Controllers;
@@ -21,7 +22,8 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
     {
         var projects = await _context.Projects.ToListAsync();
-        return Ok(projects);
+        var response = projects.Select(ProjectMapper.ToResponse).ToList();
+        return Ok(response);
     }
 
     [HttpGet("{projectId}")]
@@ -30,7 +32,8 @@ public class ProjectsController : ControllerBase
         var project = await _context.Projects.FindAsync(projectId);
         if (project == null)
             return NotFound("Project not found");
-        return Ok(project);
+        var response = ProjectMapper.ToResponse(project);
+        return Ok(response);
     }
 
     [HttpPost]
@@ -44,7 +47,8 @@ public class ProjectsController : ControllerBase
         };
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetProject), new {projectId = project.Id}, project);
+        var response = ProjectMapper.ToResponse(project);
+        return CreatedAtAction(nameof(GetProject), new {projectId = response.Id}, response);
     }
 
     [HttpPut("{projectId}")]
@@ -55,7 +59,8 @@ public class ProjectsController : ControllerBase
         projectEntity.Name = request.Name;
         projectEntity.Description = request.Description;
         await _context.SaveChangesAsync();
-        return Ok(projectEntity);
+        var response = ProjectMapper.ToResponse(projectEntity);
+        return Ok(response);
     }
 
     [HttpDelete("{projectId}")]

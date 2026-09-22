@@ -1,75 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TaskFlowApi.Data;
-using TaskFlowApi.DTOs;
-using TaskFlowApi.Mappers;
-using TaskFlowApi.Models;
+﻿namespace TaskFlowApi.Controllers;
 
-namespace TaskFlowApi.Controllers;
+using Microsoft.AspNetCore.Mvc;
+using TaskFlowApi.DTOs;
+using TaskFlowApi.Services;
 
 [ApiController]
 [Route("api/projects")]
 public class ProjectsController : ControllerBase
 {
-    private readonly TaskFlowDbContext _context;
+    private readonly ProjectService _projectService;
 
-    public ProjectsController(TaskFlowDbContext context)
+    public ProjectsController(ProjectService projectService)
     {
-        _context = context;
+        _projectService = projectService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+    public async Task<ActionResult<IEnumerable<ProjectResponse>>> GetProjects()
     {
-        var projects = await _context.Projects.ToListAsync();
-        var response = projects.Select(ProjectMapper.ToResponse).ToList();
+        var response = await _projectService.GetAllProjectsAsync();
         return Ok(response);
     }
 
     [HttpGet("{projectId}")]
-    public async Task<ActionResult<Project>> GetProject(Guid projectId)
+    public async Task<ActionResult<ProjectResponse>> GetProject(Guid projectId)
     {
-        var project = await _context.Projects.FindAsync(projectId);
-        if (project == null)
-            return NotFound("Project not found");
-        var response = ProjectMapper.ToResponse(project);
+        var response = await _projectService.GetProjectByIdAsync(projectId);
         return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Project>> PostProject(CreateProjectRequest request)
+    public async Task<ActionResult<ProjectResponse>> PostProject(CreateProjectRequest request)
     {
-        var project = new Project
-        {
-            Name = request.Name,
-            Description = request.Description,
-            CreatedAt = DateTime.UtcNow
-        };
-        _context.Projects.Add(project);
-        await _context.SaveChangesAsync();
-        var response = ProjectMapper.ToResponse(project);
-        return CreatedAtAction(nameof(GetProject), new {projectId = response.Id}, response);
+        var response = await _projectService.CreateProjectAsync(request);
+        return CreatedAtAction(nameof(GetProject), new { projectId = response.Id }, response);
     }
 
     [HttpPut("{projectId}")]
-    public async Task<ActionResult<Project>> PutProject(Guid projectId, UpdateProjectRequest request)
+    public async Task<ActionResult<ProjectResponse>> PutProject(Guid projectId, UpdateProjectRequest request)
     {
-        var projectEntity = await _context.Projects.FindAsync(projectId);
-        if (projectEntity == null) return NotFound("Project not found");
-        projectEntity.Name = request.Name;
-        projectEntity.Description = request.Description;
-        await _context.SaveChangesAsync();
-        var response = ProjectMapper.ToResponse(projectEntity);
+        var response = await _projectService.UpdateProjectAsync(projectId, request);
         return Ok(response);
     }
 
     [HttpDelete("{projectId}")]
-    public async Task<ActionResult> DeleteProject(Guid projectId)
+    public async Task<IActionResult> DeleteProject(Guid projectId)
     {
-        var projectEntity = await _context.Projects.FindAsync(projectId);
-        if (projectEntity == null) return NotFound("Project not found");
-        _context.Projects.Remove(projectEntity);
-        await _context.SaveChangesAsync();
+        await _projectService.DeleteProjectAsync(projectId);
         return NoContent();
     }
 }

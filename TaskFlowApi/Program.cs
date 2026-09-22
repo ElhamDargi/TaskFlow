@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlowApi.Data;
+using TaskFlowApi.Middleware;
 using TaskFlowApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,10 +12,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<TaskStatusTransitionValidator>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TaskService>();
 builder.Services.AddDbContext<TaskFlowDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 var app = builder.Build();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

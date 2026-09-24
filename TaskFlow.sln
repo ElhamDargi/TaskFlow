@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFlowApi", "TaskFlowApi\TaskFlowApi.csproj", "{6DD85691-A057-43FB-AC30-5C1CC083E38E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFlowApi.IntegrationTests", "TaskFlowApi.IntegrationTests\TaskFlowApi.IntegrationTests.csproj", "{45696F91-4F88-4B15-B8F3-5FBC32610192}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{6DD85691-A057-43FB-AC30-5C1CC083E38E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DD85691-A057-43FB-AC30-5C1CC083E38E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DD85691-A057-43FB-AC30-5C1CC083E38E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45696F91-4F88-4B15-B8F3-5FBC32610192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45696F91-4F88-4B15-B8F3-5FBC32610192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45696F91-4F88-4B15-B8F3-5FBC32610192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45696F91-4F88-4B15-B8F3-5FBC32610192}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

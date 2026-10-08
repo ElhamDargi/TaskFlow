@@ -1,7 +1,9 @@
-import ProjectList from './components/ProjectList';
+import CreateProjectForm from "./components/CreateProjectForm";
+import ProjectList from "./components/ProjectList";
 function App() {
   return (
     <div>
+      <CreateProjectForm />
       <ProjectList />
     </div>
   );

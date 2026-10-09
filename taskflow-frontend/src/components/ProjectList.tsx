@@ -1,6 +1,7 @@
 import type { Project } from "../types/Project";
 import { apiClient } from "../api/apiClient";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 async function fetchProjects(): Promise<Project[]> {
   const response = await apiClient("/api/projects");
@@ -15,15 +16,14 @@ async function fetchProjects(): Promise<Project[]> {
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
 
-  return isNaN(date.getTime())
-    ? "Invalid date"
-    : date.toLocaleString();
+  return isNaN(date.getTime()) ? "Invalid date" : date.toLocaleString();
 }
 
 function ProjectList() {
   const {
     data: projects = [],
-    isLoading,
+    isPending,
+    isError,
     error,
   } = useQuery({
     queryKey: ["projects"],
@@ -35,55 +35,55 @@ function ProjectList() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-
           <p className="mt-2 text-gray-500">View and manage your projects.</p>
         </div>
-        {isLoading && (
+
+        {isPending ? (
           <div className="rounded-xl border border-gray-200 bg-white p-6 text-gray-500">
             Loading projects...
           </div>
-        )}
-        {error && (
+        ) : isError ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700">
             <p className="font-medium">Failed to load projects</p>
             <p className="mt-1 text-sm">{error.message}</p>
           </div>
-        )}
-        {!isLoading && !error && (
-          <>
-            {projects.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  No projects found
+        ) : projects.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
+            <h2 className="text-lg font-semibold text-gray-900">
+              No projects found
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              There are no projects to display yet.
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-4">
+            {projects.map((project) => (
+              <li
+                key={project.id}
+                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+              >
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {project.name}
                 </h2>
 
-                <p className="mt-2 text-sm text-gray-500">
-                  There are no projects to display yet.
+                <p className="mt-2 text-gray-600">
+                  {project.description ?? "No description"}
                 </p>
-              </div>
-            ) : (
-              <ul className="space-y-4">
-                {projects.map((project) => (
-                  <li
-                    key={project.id}
-                    className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                  >
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      {project.name}
-                    </h2>
 
-                    <p className="mt-2 text-gray-600">
-                      {project.description ?? "No description"}
-                    </p>
+                <p className="mt-4 text-sm text-gray-400">
+                  Created At: {formatDate(project.createdAt)}
+                </p>
 
-                    <p className="mt-4 text-sm text-gray-400">
-                      Created At: {formatDate(project.createdAt)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+                <Link
+                  to={`/projects/${project.id}`}
+                  className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  View Details
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>

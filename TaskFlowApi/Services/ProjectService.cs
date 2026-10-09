@@ -18,7 +18,7 @@ public class ProjectService
 
     public async Task<IEnumerable<ProjectResponse>> GetAllProjectsAsync()
     {
-        var projects = await _context.Projects.ToListAsync();
+        var projects = await _context.Projects.OrderByDescending(p=>p.CreatedAt).ToListAsync();
         return projects.Select(ProjectMapper.ToResponse);
     }
 

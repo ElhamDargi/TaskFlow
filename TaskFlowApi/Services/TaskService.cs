@@ -36,8 +36,6 @@ public class TaskService
     public async Task<IEnumerable<TaskResponse>> GetTasksByProjectAsync(Guid projectId)
     {
         var tasks = await _context.Tasks.Where(t => t.ProjectId == projectId).ToListAsync();
-        if (tasks.Count == 0) throw new NotFoundException("Not found any tasks for this project");
-
         return tasks.Select(TaskMapper.ToResponse);
     }
 

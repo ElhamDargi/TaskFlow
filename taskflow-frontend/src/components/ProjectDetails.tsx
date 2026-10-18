@@ -2,10 +2,12 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTasksByProject } from "../api/tasksApi";
 import TaskList from "./TaskList";
+import { useState } from "react";
+import CreateTaskModal from "./CreateTaskModal";
 
 function ProjectDetails() {
   const { projectId } = useParams<{ projectId: string }>();
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const {
     data: tasks = [],
     isPending,
@@ -23,7 +25,13 @@ function ProjectDetails() {
         <h1 className="mb-8 text-3xl font-bold text-gray-900">
           Project Details
         </h1>
-
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="mb-6 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+        >
+          + New Task
+        </button>
         {!projectId ? (
           <p className="text-red-600">Project ID is missing.</p>
         ) : isPending ? (
@@ -48,6 +56,14 @@ function ProjectDetails() {
           <TaskList tasks={tasks} />
         )}
       </div>
+      ¨
+      {isModalOpen && projectId && (
+        <CreateTaskModal
+          projectId={projectId}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+      
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { apiClient } from "./apiClient";
 import type { TaskResponse } from "../types/TaskResponse";
+import type { CreateTaskRequest } from "../types/CreateTaskRequest";
 
 export async function fetchTasksByProject(
   projectId: string,
@@ -11,4 +12,23 @@ export async function fetchTasksByProject(
   }
 
   return response.json();
-}
+  }
+
+  export async function createTask(
+    request: CreateTaskRequest,
+  ): Promise<TaskResponse> {
+    const response = await apiClient("/api/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create task");
+    }
+
+    return response.json();
+  }
+

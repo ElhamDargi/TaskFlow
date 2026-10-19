@@ -40,13 +40,26 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskResponse>> PostTask(CreateTaskRequest request)
     {
         var response = await _taskService.CreateTaskAsync(request);
-        return CreatedAtAction(nameof(GetTaskById), new { taskId = response.Id }, response);
+        return CreatedAtAction(nameof(GetTaskById), new {taskId = response.Id}, response);
     }
 
     [HttpPut("{taskId}")]
     public async Task<ActionResult<TaskResponse>> PutTask(Guid taskId, UpdateTaskRequest task)
     {
         var response = await _taskService.UpdateTaskAsync(taskId, task);
+        return Ok(response);
+    }
+
+    [HttpPatch("{taskId}/status")]
+    public async Task<ActionResult<TaskResponse>> PatchTaskStatus(
+        Guid taskId,
+        [FromBody] UpdateTaskStatusRequest statusRequest)
+    {
+        var response = await _taskService.UpdateTaskStatusAsync(
+            taskId,
+            statusRequest
+        );
+
         return Ok(response);
     }
 

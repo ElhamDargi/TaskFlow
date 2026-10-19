@@ -27,8 +27,8 @@ public class TaskService
 
     public async Task<TaskResponse> GetTaskByIdAsync(Guid taskId)
     {
-        var task = await _context.Tasks.FindAsync(taskId) 
-            ?? throw new NotFoundException("Task not found");
+        var task = await _context.Tasks.FindAsync(taskId)
+                   ?? throw new NotFoundException("Task not found");
 
         return TaskMapper.ToResponse(task);
     }
@@ -45,7 +45,7 @@ public class TaskService
             throw new ValidationException("Project id is required", "ProjectId");
 
         var project = await _context.Projects.FindAsync(request.ProjectId)
-            ?? throw new NotFoundException("Project not found");
+                      ?? throw new NotFoundException("Project not found");
 
         var newTask = new TaskModel
         {
@@ -68,7 +68,7 @@ public class TaskService
     public async Task<TaskResponse> UpdateTaskAsync(Guid taskId, UpdateTaskRequest request)
     {
         var taskEntity = await _context.Tasks.FindAsync(taskId)
-            ?? throw new NotFoundException("Task not found");
+                         ?? throw new NotFoundException("Task not found");
 
         if (!_validator.IsValidTransition(taskEntity.Status, request.Status))
             throw new ValidationException("Transition is invalid", "status", ["Invalid status transition"]);
@@ -77,7 +77,7 @@ public class TaskService
             throw new ValidationException("Project id is required", "ProjectId");
 
         var project = await _context.Projects.FindAsync(request.ProjectId)
-            ?? throw new NotFoundException("Project not found");
+                      ?? throw new NotFoundException("Project not found");
 
         taskEntity.Title = request.Title;
         taskEntity.Description = request.Description;
@@ -91,10 +91,32 @@ public class TaskService
         return TaskMapper.ToResponse(taskEntity);
     }
 
+    public async Task<TaskResponse> UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusRequest request)
+    {
+        var taskEntity = await _context.Tasks.FindAsync(taskId)
+                         ?? throw new NotFoundException("Task not found");
+
+        var newStatus = request.Status
+                        ?? throw new ValidationException("Status is required","status", ["Status is required"]);
+
+        if (!_validator.IsValidTransition(taskEntity.Status, newStatus))
+            throw new ValidationException(
+                "Transition is invalid",
+                "status",
+                ["Invalid status transition"]
+            );
+
+        taskEntity.Status = newStatus;
+
+        await _context.SaveChangesAsync();
+
+        return TaskMapper.ToResponse(taskEntity);
+    }
+
     public async Task DeleteTaskAsync(Guid taskId)
     {
         var taskEntity = await _context.Tasks.FindAsync(taskId)
-            ?? throw new NotFoundException("Task not found");
+                         ?? throw new NotFoundException("Task not found");
 
         _context.Tasks.Remove(taskEntity);
         await _context.SaveChangesAsync();

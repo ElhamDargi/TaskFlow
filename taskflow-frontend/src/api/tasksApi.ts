@@ -1,5 +1,5 @@
 import { apiClient } from "./apiClient";
-import type { TaskResponse } from "../types/TaskResponse";
+import type { TaskResponse, TaskStatus } from "../types/TaskResponse";
 import type { CreateTaskRequest } from "../types/CreateTaskRequest";
 
 export async function fetchTasksByProject(
@@ -32,3 +32,21 @@ export async function fetchTasksByProject(
     return response.json();
   }
 
+  export async function updateTaskStatus(
+  taskId: string,
+  status: TaskStatus
+): Promise<TaskResponse> {
+  const response = await apiClient(`/api/tasks/${taskId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update task status");
+  }
+
+  return response.json();
+}

@@ -4,10 +4,18 @@ namespace TaskFlowApi.Services;
 
 public class TaskStatusTransitionValidator
 {
-    public bool IsValidTransition(TaskStatus currentStatus, TaskStatus newStatus)
+    public bool IsValidTransition(
+        TaskStatus currentStatus,
+        TaskStatus newStatus)
     {
         return currentStatus == newStatus ||
-               (currentStatus == TaskStatus.Todo && newStatus == TaskStatus.InProgress) ||
-               (currentStatus == TaskStatus.InProgress && newStatus == TaskStatus.Done);
+               (currentStatus == TaskStatus.Todo &&
+                newStatus == TaskStatus.InProgress) ||
+               (currentStatus == TaskStatus.InProgress &&
+                newStatus == TaskStatus.Todo) ||
+               (currentStatus == TaskStatus.InProgress &&
+                newStatus == TaskStatus.Done) ||
+               (currentStatus == TaskStatus.Done &&
+                newStatus == TaskStatus.InProgress);
     }
 }

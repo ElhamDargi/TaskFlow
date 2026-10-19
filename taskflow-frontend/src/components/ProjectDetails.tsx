@@ -53,7 +53,7 @@ function ProjectDetails() {
             </p>
           </div>
         ) : (
-          <TaskList tasks={tasks} />
+         <TaskList tasks={tasks} projectId={projectId!} />
         )}
       </div>
       ¨

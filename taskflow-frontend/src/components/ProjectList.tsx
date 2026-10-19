@@ -1,17 +1,8 @@
-import type { Project } from "../types/Project";
-import { apiClient } from "../api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-
-async function fetchProjects(): Promise<Project[]> {
-  const response = await apiClient("/api/projects");
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch projects");
-  }
-
-  return response.json();
-}
+import { fetchProjects } from "../api/projectApi";
+import { useState } from "react";
+import CreateProjectModal from "./CreateProjectModal";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -20,6 +11,8 @@ function formatDate(dateString: string): string {
 }
 
 function ProjectList() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const {
     data: projects = [],
     isPending,
@@ -37,7 +30,13 @@ function ProjectList() {
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
           <p className="mt-2 text-gray-500">View and manage your projects.</p>
         </div>
-
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="mb-6 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+        >
+          + New Task
+        </button>
         {isPending ? (
           <div className="rounded-xl border border-gray-200 bg-white p-6 text-gray-500">
             Loading projects...
@@ -86,6 +85,11 @@ function ProjectList() {
           </ul>
         )}
       </div>
+         {isModalOpen  && (
+        <CreateProjectModal
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

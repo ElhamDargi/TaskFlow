@@ -1,32 +1,15 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "../api/apiClient";
 import { createProjectSchema } from "../schemas/createProjectSchema";
 import type { CreateProjectRequest } from "../types/CreateProjectRequest";
+import { createProject } from "../api/projectApi";
 
-async function createProject(project: CreateProjectRequest) {
-  let response: Response;
+type CreateProjectFormProps = {
+  onClose: () => void;
+};
 
-  try {
-    response = await apiClient("/api/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(project),
-    });
-  } catch {
-    throw new Error("Unable to connect to the server. Please try again.");
-  }
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || "Failed to create project");
-  }
-
-  return response.json();
-}
-
-export default function CreateProjectForm() {
+function CreateProjectForm({ onClose }: CreateProjectFormProps) {
   const queryClient = useQueryClient();
 
   const {
@@ -47,6 +30,7 @@ export default function CreateProjectForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       reset();
+      onClose();
     },
   });
 
@@ -100,7 +84,9 @@ export default function CreateProjectForm() {
               rows={3}
               {...register("description")}
               aria-invalid={Boolean(errors.description)}
-              aria-describedby={errors.description ? "description-error" : undefined}
+              aria-describedby={
+                errors.description ? "description-error" : undefined
+              }
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-blue-500"
               placeholder="Enter project description (optional)"
             />
@@ -135,3 +121,4 @@ export default function CreateProjectForm() {
     </div>
   );
 }
+export default CreateProjectForm;

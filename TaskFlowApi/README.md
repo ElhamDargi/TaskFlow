@@ -27,6 +27,7 @@ The API handles project and task operations, database persistence, request valid
 | C# | Backend programming language |
 | Entity Framework Core 10 | Database access and ORM |
 | PostgreSQL | Relational database |
+| Neon | Hosted PostgreSQL provider |
 | Npgsql | PostgreSQL provider for Entity Framework Core |
 | Swagger / Swashbuckle | Interactive API documentation |
 | .NET User Secrets | Local management of sensitive configuration |
@@ -63,8 +64,9 @@ Entity Framework Core uses the Npgsql provider to connect to PostgreSQL.
 Install the following tools before running the backend:
 
 - .NET 10 SDK
-- PostgreSQL
 - Git
+- .NET EF Core CLI
+- Access to a PostgreSQL database (local or hosted)
 - An IDE such as Visual Studio, JetBrains Rider, or Visual Studio Code
 
 ### 1. Clone the Repository
@@ -82,15 +84,21 @@ dotnet restore
 
 ### 3. Configure PostgreSQL
 
-Create a PostgreSQL database for the application.
+TaskFlow uses PostgreSQL for database persistence.
 
-The backend reads its connection string from the configuration key:
+The backend reads its connection string from the following configuration key:
 
 ```text
 ConnectionStrings:DefaultConnection
 ```
 
-For local development, configure the connection string using .NET User Secrets:
+The application supports both local PostgreSQL and hosted PostgreSQL.
+
+#### Option A: Local PostgreSQL
+
+Create a local PostgreSQL database.
+
+Configure the connection string using .NET User Secrets:
 
 ```bash
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=TaskFlowDb;Username=postgres;Password=YOUR_PASSWORD"
@@ -98,25 +106,93 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Po
 
 Replace `YOUR_PASSWORD` with your PostgreSQL password.
 
-If your database uses a different name, port, or username, update those values accordingly.
+Update the database name, port, or username if necessary.
 
-**Security:** Never commit real database credentials, passwords, or production secrets to Git.
+#### Option B: Hosted PostgreSQL (Neon)
+
+TaskFlow uses [Neon](https://neon.tech/) as its hosted PostgreSQL provider.
+
+**Hosted database configuration:**
+
+| Setting | Value |
+|---|---|
+| Provider | Neon |
+| Database engine | PostgreSQL |
+| Region | AWS Europe Central 1 (Frankfurt) |
+| Database | `neondb` |
+| Database username | `neondb_owner` |
+| Connection type | Direct connection |
+| .NET configuration key | `ConnectionStrings:DefaultConnection` |
+
+To configure the hosted database:
+
+1. Create a project in the Neon dashboard.
+2. Create or select a PostgreSQL database.
+3. Open the database connection details.
+4. Select the direct connection option.
+5. Copy the Npgsql-compatible connection string.
+6. Store the connection string securely using .NET User Secrets.
+
+For local development, run:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<YOUR_NEON_CONNECTION_STRING>"
+```
+
+Replace `<YOUR_NEON_CONNECTION_STRING>` with the actual connection string obtained from Neon.
+
+The connection string should include the SSL configuration required by Neon.
+
+**Security considerations:**
+
+- Never commit actual connection strings or passwords to Git.
+- Never store production database credentials directly in `appsettings.json`.
+- Use .NET User Secrets for local development.
+- Use environment variables or the deployment platform's secret management system for production.
+- Do not expose database credentials in logs or documentation.
+
+**Note:** .NET User Secrets are intended for local development and are not a production secret management solution.
 
 ### 4. Apply Database Migrations
 
-If the database has not been initialized, apply the existing Entity Framework Core migrations:
+TaskFlow uses Entity Framework Core migrations to manage its PostgreSQL database schema.
 
-```bash
-dotnet ef database update
-```
-
-If the EF Core CLI is not installed, install it first:
+If the EF Core CLI is not installed, install it:
 
 ```bash
 dotnet tool install --global dotnet-ef
 ```
 
-The database specified in your connection string must be accessible before applying migrations.
+List the existing migrations:
+
+```bash
+dotnet ef migrations list
+```
+
+Apply migrations to the configured database:
+
+```bash
+dotnet ef database update
+```
+
+The database specified by `ConnectionStrings:DefaultConnection` must be accessible before applying migrations.
+
+**Existing migrations:**
+
+| Migration | Purpose |
+|---|---|
+| `20260915103007_InitialCreate` | Initial database migration |
+| `20260915114247_TaskProjectRelationship` | Creates the project and task schema and relationship |
+
+The resulting database contains:
+
+- `Projects` — Stores project information.
+- `Tasks` — Stores task information and references projects.
+- `__EFMigrationsHistory` — Tracks applied Entity Framework Core migrations.
+
+The `Tasks` table includes a foreign key referencing `Projects`.
+
+EF Core uses the migration history table to determine which migrations have already been applied.
 
 ### 5. Run the API
 
@@ -126,27 +202,62 @@ Start the backend in the Development environment:
 dotnet run --environment Development
 ```
 
-The API address depends on your local launch settings.
+The API address depends on the local launch settings.
 
-In the current development setup, the frontend uses:
+In the verified local development setup, the backend runs at:
 
 ```text
-https://localhost:44312
+http://localhost:5072
 ```
 
-Check the terminal output or `Properties/launchSettings.json` to confirm the address used when running the API.
+Check the terminal output or `Properties/launchSettings.json` to confirm the address and port.
+
+## Hosted Database Verification
+
+The hosted PostgreSQL database was configured and tested successfully using Neon.
+
+### Completed Verification
+
+- Neon PostgreSQL database created successfully.
+- Database credentials configured through .NET User Secrets.
+- Local ASP.NET Core backend connected successfully to Neon.
+- Existing EF Core migrations applied successfully.
+- Database tables verified in the Neon dashboard.
+- Project creation and retrieval tested successfully.
+- Task creation and retrieval tested successfully.
+
+### API Connectivity Tests
+
+The following operations were tested using Swagger:
+
+| Operation | Result |
+|---|---|
+| Retrieve projects | Successful |
+| Create project | Successful |
+| Create task | Successful |
+| Retrieve stored data | Successful |
+
+These tests confirmed that the locally running backend could communicate with the hosted PostgreSQL database and persist application data.
+
+### Deployment Connectivity
+
+Connectivity from the future deployed backend host has not yet been tested.
+
+This verification is planned as part of the backend deployment issue.
+
+Production database credentials must be configured securely on the deployment platform.
 
 ## API Documentation
 
 Swagger UI is enabled when the application runs in the **Development** environment.
 
-Once the API is running, open:
+In the verified local setup, Swagger can be accessed at:
 
 ```text
-https://localhost:44312/swagger
+http://localhost:5072/swagger
 ```
 
-Replace the host and port if your API is running at a different address.
+The API may use a different address or port depending on the launch configuration.
 
 Swagger provides interactive documentation for the registered API endpoints.
 
@@ -262,8 +373,11 @@ For frontend setup and usage instructions, see the [Frontend README](../taskflow
 | `dotnet restore` | Restore NuGet dependencies |
 | `dotnet build` | Build the backend project |
 | `dotnet run --environment Development` | Run the API in Development |
-| `dotnet ef database update` | Apply EF Core migrations |
-| `dotnet user-secrets list` | List configured development secrets |
+| `dotnet ef migrations list` | List EF Core migrations |
+| `dotnet ef database update` | Apply pending EF Core migrations |
+| `dotnet user-secrets list` | List configured development secrets (may expose credentials) |
+
+**Security note:** Avoid sharing the output of `dotnet user-secrets list`, as it can display sensitive values.
 
 ## Future Improvements
 
@@ -274,8 +388,9 @@ Potential enhancements include:
 - Task assignment and filtering
 - Pagination
 - Automated unit and integration tests
-- CI/CD pipelines
-- Production deployment
+- CI/CD enhancements
+- Production backend deployment
+- Production database connectivity verification
 
 ## License
 

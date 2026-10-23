@@ -24,7 +24,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173",
-                "https://task-flow-sigma-blush.vercel.app"
+                "https://task-flow-sigma-blush.vercel.app",
+                "https://taskflow-elham.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();

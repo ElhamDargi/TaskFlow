@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProjectList from "./components/ProjectList";
 import ProjectDetails from "./components/ProjectDetails";
 
@@ -6,12 +6,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/projects"
-          element={
-              <ProjectList />
-          }
-        />
+        <Route path="/" element={<Navigate to="/projects" replace />} />
+        <Route path="/projects" element={<ProjectList />} />
         <Route path="/projects/:projectId" element={<ProjectDetails />} />
       </Routes>
     </BrowserRouter>
